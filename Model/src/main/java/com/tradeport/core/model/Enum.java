@@ -2,6 +2,8 @@ package com.tradeport.core.model;
 
 public interface Enum {
 
+	public static final int[] BONUS_VICTORY_POINTS = {0, 1, 1, 2, 3, 4, 5};
+
 	public enum GoodType {
 		FISH,
 		MEAT,
