@@ -1,5 +1,7 @@
 package com.tradeport.core.model;
 
+import com.tradeport.core.model.Enum.GoodType;
+
 /***
  * Here we declare and define all actions that can be done to the board,
  * including the market, building cards, deck, etc.
@@ -7,6 +9,8 @@ package com.tradeport.core.model;
  */
 public class Board implements Enum, BuildingRepository{
 	
+private static final Exception NoGoodFoundException = null;
+
 //	************************************************************
 //	Attributes
 //	************************************************************
@@ -132,13 +136,12 @@ public class Board implements Enum, BuildingRepository{
 
 
 	protected void swapGoodMarkers(GoodType g1, GoodType g2) {
-	    if (g1 == g2) {
-	        throw new IllegalArgumentException("Cannot swap a marker with itself.");
-	    }
-	    objMarket.swap(g1, g2);
+		if (g1 == g2) {
+			throw new IllegalArgumentException("Cannot swap a marker with itself.");
+		}
+		objMarket.swap(g1, g2);
 	}
 
-	// ===== 6. Market: redefine every position at once ==========================
 
 	protected void rearrangeMarket(GoodType g1, int p1, GoodType g2, int p2, GoodType g3, int p3, GoodType g4, int p4) {
 		// Cheap sanity checks
@@ -158,16 +161,41 @@ public class Board implements Enum, BuildingRepository{
 
 
 	/**
-	 * Remark: Cannot perform the entirety of "Buy a Building" in Board as it involves value checking.
-	 * Can perform purely "Buy a building" action
-	 * // TODO: define the "Buy a building" action. In short, in ONE action:
-	 * //   1. calculate the profit from selling goods at the market
-	 * //   2. use that profit to buy a building
-	 * //   3. shift the market's good markers
+	 * Board performs the finalising action of "Buying a Building" after validation is passed:
+	 * 1. Deduct Player Goods
+	 * 2. Player obtains building
+	 * 3. Market is shifted
 	 */
-	protected void processBuyABuilding(Player player, Building boughtBuilding, GoodType[] goodsSold) {
-		player.obtainBuilding(boughtBuilding);
-		objMarket.shiftMarket(goodsSold[0], goodsSold[1], goodsSold[2], goodsSold[3]);
+	public void buyBuildingWithGoods(Player buyingPlayer, Building boughtBuilding, GoodType[] goodsSold) throws Exception{
+		for(GoodType goodType : goodsSold)
+			buyingPlayer.setGoodsQuantity(goodType, 0);
+		buyingPlayer.obtainBuilding(boughtBuilding);
+		objMarket.shiftMarket(goodsSold);
+	}
+
+//	public Building[] checkBuyableBuildings(int maximumValue) {
+//		Building[] buyableBuildings = new Building[players.length + 3];
+//		int i = 0;
+//		for(Building building : buildingsOnBoard)
+//			if(building.getCost() <= maximumValue) {
+//				buyableBuildings[i] = building;
+//				i++;
+//			}
+//		return buyableBuildings;
+//	}
+
+	public Player findPlayerById(int playerId) throws Exception {
+		return Player.findPlayerById(players, playerId);
+	}
+
+	public int playerCouldSellGoods(Player buyingPlayer, GoodType[] goodsSold) throws Exception {
+		int potentialBuyingPower = 0;
+		for(GoodType goodType : goodsSold) {
+			if(buyingPlayer.getGoodsQuantity(goodType) == 0)
+				throw NoGoodFoundException;
+			potentialBuyingPower += (objMarket.getPrice(goodType));
+		}
+		return potentialBuyingPower;
 	}
 
 
@@ -175,19 +203,19 @@ public class Board implements Enum, BuildingRepository{
 //	Getters and Setters
 //	************************************************************
 
-	public Deck getObjDeck() {
+	public Deck getDeck() {
 		return objDeck;
 	}
 
-	public void setObjDeck(Deck objDeck) {
+	public void setDeck(Deck objDeck) {
 		this.objDeck = objDeck;
 	}
 
-	public Market getObjMarket() {
+	public Market getMarket() {
 		return objMarket;
 	}
 
-	public void setObjMarket(Market objMarket) {
+	public void setMarket(Market objMarket) {
 		this.objMarket = objMarket;
 	}
 
