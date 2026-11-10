@@ -98,6 +98,18 @@ public class Market implements Enum {
 	}
 
 
+	/* Action: Performs Market Shift Based on Goods Sold
+	 * Decides which function to call based on switch statement on the number of types of goods sold
+	 */
+	protected void shiftMarket(GoodType[] goodsSold) {
+		switch(goodsSold.length) {
+		case 1: shiftMarket(goodsSold[0]);
+		case 2: shiftMarket(goodsSold[0], goodsSold[1]);
+		case 3: shiftMarket(goodsSold[0], goodsSold[1], goodsSold[2]);
+		case 4: shiftMarket(goodsSold[0], goodsSold[1], goodsSold[2], goodsSold[3]);
+	}
+	}
+
 	/**
 	 * Action: Shifts the market after someone buys a building<p>
 	 * The number of good markers may vary, and overloaded methods with lower arguments
@@ -172,7 +184,12 @@ public class Market implements Enum {
 	public void setGoodsTracker(GoodType goodType, int position) {
 		this.goodsPositionTracker[goodType.ordinal()] = position;
 	}
-	
+
+	//Special Getter: Get Market Price of a Good (makes other code cleaner)
+	public int getPrice(GoodType goodType) {
+		return getPosition(goodType) + 2;
+	}
+
 	// General Getter & Setter
 	public int[] getGoodsTracker() {
 		return goodsPositionTracker;
