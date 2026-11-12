@@ -81,7 +81,7 @@ public interface BuildingRepository extends ConstantsLibrary{
 		// IMPORTANT: The sequence for perks awarded is Anchor, Coin, Top Hat and Warehouse respectively
 		boolean perksAwarded[] = new boolean[4];
 		// True for characters' starting buildings (incl. Training_Dummy), false for deck cards
-		private final boolean characterBuilding;
+		private final boolean isCharacter;
 
 
 //		************************************************************
@@ -96,7 +96,7 @@ public interface BuildingRepository extends ConstantsLibrary{
 			this.perksAwarded[Perk.COIN_PERK.ordinal()] = coinPerk;
 			this.perksAwarded[Perk.TOP_HAT_PERK.ordinal()] = topHatPerk;
 			this.perksAwarded[Perk.WAREHOUSE_PERK.ordinal()] = warehousePerk;
-			this.characterBuilding = false;
+			this.isCharacter = false;
 		}
 		// For Characters' Starting Buildings
 		private Building(String name, boolean anchorPerk, boolean coinPerk, boolean topHatPerk, boolean warehousePerk) {
@@ -107,7 +107,7 @@ public interface BuildingRepository extends ConstantsLibrary{
 			this.perksAwarded[Perk.COIN_PERK.ordinal()] = coinPerk;
 			this.perksAwarded[Perk.TOP_HAT_PERK.ordinal()] = topHatPerk;
 			this.perksAwarded[Perk.WAREHOUSE_PERK.ordinal()] = warehousePerk;
-			this.characterBuilding = true;
+			this.isCharacter = true;
 			// Setting up name
 			this.name = getName();
 		}
@@ -175,8 +175,8 @@ public interface BuildingRepository extends ConstantsLibrary{
 		}
 
 		/** True if this building is a character's starting building (not a deck card). */
-		public boolean isCharacterBuilding() {
-			return characterBuilding;
+		public boolean isCharacter() {
+			return isCharacter;
 		}
 	};
 
