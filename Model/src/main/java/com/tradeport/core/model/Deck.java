@@ -3,31 +3,33 @@ package com.tradeport.core.model;
 import java.security.SecureRandom;
 
 /**
- * A deck of 36 cards. Each card is the ordinal (1..36) of a
- * BuildingRepository.Building constant: card N maps to Building.values()[N - 1].
+ * A deck of 36 cards. Card {@code N} maps directly to the enum ordinal of a
+ * {@code BuildingRepository.Building} constant: card {@code N} is {@code Building.values()[N]}.
+ * Ordinal 0 (Training_Dummy) and the character buildings (ordinal >= 37)
+ * are never part of the deck.
  *
  * Java arrays have a fixed length, so the "size" of the deck is tracked by the
- * `size` counter. Only cards[0 .. size-1] are in the deck; the top card is
- * cards[size - 1]. Drawing shrinks the access range, putting back expands it.
+ * {@code size} counter. Only {@code cards[0 .. size-1]} are in the deck; the top card is
+ * {@code cards[size - 1]}. Drawing shrinks the access range, putting back expands it.
  */
 public class Deck implements BuildingRepository{
 
 //	************************************************************
 //	Attributes
 //	************************************************************
-	
+
 	public static final int DECK_SIZE = 36; // For dynamic sizing in case more cards are available in expansions
 	private final int[] cards = new int[DECK_SIZE];
-	private int size; // Current deck size in the game 
+	private int size; // Current deck size in the game
 
-	// Claude: Unpredictable, OS-entropy-seeded generator (see notes on randomness).
+	// Unpredictable, OS-entropy-seeded generator (see notes on randomness).
 	private final SecureRandom random = new SecureRandom();
 
 
 //	************************************************************
 //	Constructor
 //	************************************************************
-	
+
 	Deck() {
 		reset();
 	}
@@ -43,15 +45,14 @@ public class Deck implements BuildingRepository{
 	/**
 	 * Shuffles the cards currently in the deck (Fisher-Yates).
 	 * Cards already drawn are not affected.
-	 * Uses XOR addition to perform swapping (refer to {@link Market#swap(com.tradeport.core.model.Enum.GoodType, com.tradeport.core.model.Enum.GoodType) swap(GoodType GoodType1, GoodType GoodType2)})
 	 * Depends on java.security.SecureRandom
 	 */
 	protected void shuffle() {
 		for (int i = size - 1; i > 0; i--) {
 			int j = random.nextInt(i + 1); // 0..i inclusive, unbiased
-			cards[i] += cards[j];
-			cards[j] -= cards[i];
-			cards[i] -= cards[j];
+			int temp = cards[i];
+			cards[i] = cards[j];
+			cards[j] = temp;
 		}
 	}
 
@@ -85,7 +86,7 @@ public class Deck implements BuildingRepository{
 
 	/** Composite: draws a number of cards and returns its Building constant to be dealt onto the board. */
 	protected Building[] drawBuildings(int quantity) {
-		Building[] buildingsOnBoard = new Building[5];
+		Building[] buildingsOnBoard = new Building[quantity];
 		for(int i = 0; i < quantity; i++)
 			buildingsOnBoard[i] = drawBuilding();
 		return buildingsOnBoard;
@@ -110,7 +111,7 @@ public class Deck implements BuildingRepository{
 	}
 
 	protected void putBack(Building building) {
-		putBack(building.ordinal() + 1);
+		putBack(building.ordinal());
 	}
 
 	protected boolean contains(int card) {
@@ -130,9 +131,9 @@ public class Deck implements BuildingRepository{
 		return size == 0;
 	}
 
-	/** Card (1..36) -> Building constant. */
+	/** Card (1..36) -> Building constant. Card {@code N} is {@code Building.values()[N]}. */
 	private static Building toBuilding(int card) {
-		return Building.values()[card - 1];
+		return Building.values()[card];
 	}
 
 }
