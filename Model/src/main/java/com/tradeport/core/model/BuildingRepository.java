@@ -1,13 +1,13 @@
 package com.tradeport.core.model;
 
-public interface BuildingRepository extends Enum{
+public interface BuildingRepository extends ConstantsLibrary{
 
-	
+
 	/***
 	 * Enum: Building<p>
 	 * Includes all buildings that can be visited during the game.
 	 * This includes building cards in the deck and starting buildings of each characters.
-	 * <p>Keep note that the Dockhand has two anchor perks. Implement this in the {@link Player#Player(com.tradeport.core.model.Enum.GoodType, com.tradeport.core.model.Enum.GoodType) Player} constructor
+	 * <p>Keep note that the Dockhand has two anchor perks. Implement this in the player initialiser
 	 */
 	public enum Building {
 		
@@ -80,6 +80,8 @@ public interface BuildingRepository extends Enum{
 		private int victoryPointsAwarded;
 		// IMPORTANT: The sequence for perks awarded is Anchor, Coin, Top Hat and Warehouse respectively
 		boolean perksAwarded[] = new boolean[4];
+		// True for characters' starting buildings (incl. Training_Dummy), false for deck cards
+		private final boolean characterBuilding;
 
 
 //		************************************************************
@@ -94,6 +96,7 @@ public interface BuildingRepository extends Enum{
 			this.perksAwarded[Perk.COIN_PERK.ordinal()] = coinPerk;
 			this.perksAwarded[Perk.TOP_HAT_PERK.ordinal()] = topHatPerk;
 			this.perksAwarded[Perk.WAREHOUSE_PERK.ordinal()] = warehousePerk;
+			this.characterBuilding = false;
 		}
 		// For Characters' Starting Buildings
 		private Building(String name, boolean anchorPerk, boolean coinPerk, boolean topHatPerk, boolean warehousePerk) {
@@ -104,6 +107,7 @@ public interface BuildingRepository extends Enum{
 			this.perksAwarded[Perk.COIN_PERK.ordinal()] = coinPerk;
 			this.perksAwarded[Perk.TOP_HAT_PERK.ordinal()] = topHatPerk;
 			this.perksAwarded[Perk.WAREHOUSE_PERK.ordinal()] = warehousePerk;
+			this.characterBuilding = true;
 			// Setting up name
 			this.name = getName();
 		}
@@ -168,6 +172,11 @@ public interface BuildingRepository extends Enum{
 
 		public void setPerksAwarded(boolean[] perksAwarded) {
 			this.perksAwarded = perksAwarded;
+		}
+
+		/** True if this building is a character's starting building (not a deck card). */
+		public boolean isCharacterBuilding() {
+			return characterBuilding;
 		}
 	};
 
