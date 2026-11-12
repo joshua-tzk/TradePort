@@ -1,6 +1,6 @@
 package com.tradeport.core.model;
 
-public interface Enum {
+public interface ConstantsLibrary {
 
 	public static final int[] BONUS_VICTORY_POINTS = {0, 1, 1, 2, 3, 4, 5};
 
