@@ -1,21 +1,38 @@
 package com.tradeport.core.model;
 
-public class Market implements Enum {
-	
+import java.security.SecureRandom;
+import java.util.Arrays;
+import java.util.stream.IntStream;
+
+public class Market implements ConstantsLibrary {
+
 //	************************************************************
 //	Attributes
 //	************************************************************
 
 	// The position tracker for goods, with 0 being the leftmost position and 3 being the rightmost position
-	// Gives the position of Fish, Meat, Stone and Wood in the goodsTracker respectively (by sequence in Enum)
-	int[] goodsPositionTracker = new int[4];
-	public static final int LOWEST_POSITION = 0, HIGHEST_POSITION = 3; // Constants used by Building cards
+	// Gives the position of Fish, Meat, Stone and Wood in the goodsPositionTracker respectively (by sequence in ConstantsLibrary)
+	private int[] goodsPositionTracker = IntStream.range(0, GoodType.values().length).toArray();
+	public static final int LOWEST_POSITION = 0, HIGHEST_POSITION = GoodType.values().length - 1; // Constants used by Building cards
+	private final SecureRandom random = new SecureRandom();
 
 //	************************************************************
 //	Constructor
 //	************************************************************
 
 	Market() {
+		// Shuffle the good tokens when it is initiated
+		randomiseStartingPositions();
+		assertValidPositions();
+	}
+
+	private void randomiseStartingPositions() { // Method mechanism refers to Deck.shuffle()
+		for (int i = goodsPositionTracker.length - 1; i > 0; i--) {
+			int j = random.nextInt(i + 1);
+			int temp = goodsPositionTracker[i];
+			goodsPositionTracker[i] = goodsPositionTracker[j];
+			goodsPositionTracker[j] = temp;
+		}
 	}
 
 //	************************************************************
@@ -26,44 +43,79 @@ public class Market implements Enum {
 	int getPosition(GoodType goodType) {
 		return goodsPositionTracker[goodType.ordinal()];
 	}
-	
-	// Lookup by GoodType's position
+
+	// Reverse lookup by position: returns the good occupying the given position
+	// TODO: can be used by future market UI/effects
 	GoodType getPosition(int goodsPosition) {
-//		for(int i = 0; i < goodsPositionTracker.length; i++)
-//			if(goodsPositionTracker[i] == goodsPosition)
-				return GoodType.FISH;
+		for (GoodType goodType : GoodType.values()) {
+			if (goodsPositionTracker[goodType.ordinal()] == goodsPosition) {
+				return goodType;
+			}
+		}
+		throw new IllegalArgumentException("No good occupies position " + goodsPosition);
 	}
 
 	// Checks if the former good marker has a lower position than the latter
 	boolean oneLowerThan2(GoodType goodType1, GoodType goodType2) {
-		return (goodsPositionTracker[goodType1.ordinal()] < goodsPositionTracker[goodType2.ordinal()]) ? true : false;
+		return goodsPositionTracker[goodType1.ordinal()] < goodsPositionTracker[goodType2.ordinal()];
 	}
 
 
 	/**
-	 * Swap by XOR Addition (for fun)
-	 * int a = 1, b = 2;
-	 * a = a + b (a = 3)
-	 * b = a - b (b = 3 - 2 = 1)
-	 * a = a - b (a = 3 - 1 = 2)
+	 * Swaps the positions of two goods.
 	 */
 	void swap(GoodType goodType1, GoodType goodType2) {
-		goodsPositionTracker[goodType1.ordinal()] += goodType2.ordinal();
-		goodsPositionTracker[goodType2.ordinal()] -= goodType1.ordinal();
-		goodsPositionTracker[goodType1.ordinal()] -= goodType2.ordinal();
+		int tmp = goodsPositionTracker[goodType1.ordinal()];
+		goodsPositionTracker[goodType1.ordinal()] = goodsPositionTracker[goodType2.ordinal()];
+		goodsPositionTracker[goodType2.ordinal()] = tmp;
 	}
 
+
+//	************************************************************
+//	Shifting Methods
+//	************************************************************
+
 	/*
-	 * This is a recursive function that moves a goodType to a position, and shifts the others to a certain direction.
-	 * Repeats swaps to achieve the shift.
+	 * Private Core Mechanism: Moves a good's marker to the target position.
+	 * Can only be called by shiftGoodMarker().
+	 * Every good whose marker sits between the old and new position is shifted
+	 * one slot towards the vacated position, preserving the relative order of all markers.
+	 * Does nothing if the good is already at the target position.
 	 */
-	protected void shift(GoodType goodType, int targetPosition) {
-		int originalPosition = goodsPositionTracker[goodType.ordinal()];
-		if(originalPosition == targetPosition)
-			throw new IllegalArgumentException("Why are you shifting it to its original position?");
-		else if (originalPosition > targetPosition) {
-			for(GoodType objEnum : GoodType.values())
-				if(goodsPositionTracker[objEnum.ordinal()] == 1);
+	private void shift(GoodType goodType, int targetPosition) {
+		// Checks for illegal target positioning
+		if (targetPosition < LOWEST_POSITION || targetPosition > HIGHEST_POSITION)
+			throw new IllegalArgumentException("Position out of range: " + targetPosition);
+		int currentPosition = getPosition(goodType);
+		if (targetPosition == currentPosition)
+			// throw new IllegalArgumentException("Good token is at the same position " + targetPosition);
+			return;
+		// Since target != current, if(target > current) else(current < target)
+		if(targetPosition > currentPosition) {
+			for(int i = 0; i < goodsPositionTracker.length; i++)
+				if(goodsPositionTracker[i] == currentPosition)
+					goodsPositionTracker[i] = targetPosition;
+				else if(goodsPositionTracker[i] <= targetPosition && goodsPositionTracker[i] > currentPosition)
+					goodsPositionTracker[i]--;
+		}
+		else { // then targetPosition < currentPosition
+			for(int i = 0; i < goodsPositionTracker.length; i++)
+				if(goodsPositionTracker[i] == currentPosition)
+					goodsPositionTracker[i] = targetPosition;
+				else if(goodsPositionTracker[i] >= targetPosition && goodsPositionTracker[i] < currentPosition)
+					goodsPositionTracker[i]++;
+		}
+		assertValidPositions(); // Checks for array validity in case it's corrupted
+	}
+
+	// Sanity check: every position in range and no two goods share a position
+	private void assertValidPositions() {
+		boolean[] occupied = new boolean[goodsPositionTracker.length];
+		for (int pos : goodsPositionTracker) {
+			if (pos < LOWEST_POSITION || pos > HIGHEST_POSITION || occupied[pos]) {
+				throw new IllegalStateException("Market positions are corrupted: " + Arrays.toString(goodsPositionTracker));
+			}
+			occupied[pos] = true;
 		}
 	}
 
@@ -102,12 +154,19 @@ public class Market implements Enum {
 	 * Decides which function to call based on switch statement on the number of types of goods sold
 	 */
 	protected void shiftMarket(GoodType[] goodsSold) {
+		// Cheap sanity checks
+		// Each good must appear exactly once
+		for(int i = 0; i < goodsSold.length; i++)
+			for(int j = i + 1; j < goodsSold.length; j++)
+				if(goodsSold[i] == goodsSold[j])
+					throw new IllegalArgumentException("Each good type must appear exactly once.");
 		switch(goodsSold.length) {
-		case 1: shiftMarket(goodsSold[0]);
-		case 2: shiftMarket(goodsSold[0], goodsSold[1]);
-		case 3: shiftMarket(goodsSold[0], goodsSold[1], goodsSold[2]);
-		case 4: shiftMarket(goodsSold[0], goodsSold[1], goodsSold[2], goodsSold[3]);
-	}
+		case 1: shiftMarket(goodsSold[0]); break;
+		case 2: shiftMarket(goodsSold[0], goodsSold[1]); break;
+		case 3: shiftMarket(goodsSold[0], goodsSold[1], goodsSold[2]); break;
+		case 4: shiftMarket(goodsSold[0], goodsSold[1], goodsSold[2], goodsSold[3]); break;
+		default: throw new IllegalArgumentException("Cannot shift market for " + goodsSold.length + " good types.");
+		}
 	}
 
 	/**
@@ -120,24 +179,26 @@ public class Market implements Enum {
 	 * assuming that no good markers will have their positions equal at any given point in time.
 	 */
 	protected void shiftMarket(GoodType g1, GoodType g2, GoodType g3, GoodType g4) {
-		// Call method with lower arguments if conditions satisfy
-		if (g4 == null) { shiftMarket(g1, g2, g3); return; }
-		// Cheap sanity checks
-		// Each good must appear exactly once
-		if (g1 == g2 || g1 == g3 || g1 == g4 || g2 == g3 || g2 == g4 || g3 == g4) {
-			throw new IllegalArgumentException("Each good type must appear exactly once.");
+		// All four goods were sold: rank them by current position, then swap
+		// the ends pairwise (lowest<->highest, middle two) — equivalent to a
+		// full reversal of the market order.
+		GoodType[] goods = {g1, g2, g3, g4};
+		for (int i = 1; i < goods.length; i++) {
+			GoodType key = goods[i];
+			int keyPos = getPosition(key);
+			int j = i - 1;
+			while (j >= 0 && getPosition(goods[j]) > keyPos) {
+				goods[j + 1] = goods[j];
+				j--;
+			}
+			goods[j + 1] = key;
 		}
-		for(int goodMarkerPosition : goodsPositionTracker) {
-			if(goodMarkerPosition == 0) goodMarkerPosition = 3;
-			if(goodMarkerPosition == 1) goodMarkerPosition = 2;
-			if(goodMarkerPosition == 2) goodMarkerPosition = 1;
-			if(goodMarkerPosition == 3) goodMarkerPosition = 1;
-		}
+		swap(goods[0], goods[3]);
+		swap(goods[1], goods[2]);
 	}
 
 	// Three good markers
 	protected void shiftMarket(GoodType g1, GoodType g2, GoodType g3) {
-		if (g3 == null) { shiftMarket(g1, g2); return; }
 		if(oneLowerThan2(g1, g2) && oneLowerThan2(g1, g3)) {
 			shiftMarket(g1);
 			shiftMarket(g2, g3);
@@ -150,7 +211,7 @@ public class Market implements Enum {
 			shiftMarket(g3);
 			shiftMarket(g1, g2);
 		}
-		
+
 	}
 
 	// Two good markers
@@ -163,7 +224,7 @@ public class Market implements Enum {
 			shiftMarket(goodType2);
 			shiftMarket(goodType1);
 		}
-		
+
 	}
 
 	// One good marker: No comparison required
@@ -176,12 +237,10 @@ public class Market implements Enum {
 //	Getters & Setters
 //	************************************************************
 
-	// Index-specific Getter & Setter
-	public int getGoodsTracker(GoodType goodType) {
-		return getPosition(goodType);
-	}
-
-	public void setGoodsTracker(GoodType goodType, int position) {
+	public void setGoodsPosition(GoodType goodType, int position) {
+		if (position < LOWEST_POSITION || position > HIGHEST_POSITION) {
+			throw new IllegalArgumentException("Position out of range: " + position);
+		}
 		this.goodsPositionTracker[goodType.ordinal()] = position;
 	}
 
@@ -191,11 +250,14 @@ public class Market implements Enum {
 	}
 
 	// General Getter & Setter
-	public int[] getGoodsTracker() {
+	public int[] getGoodsPositionTracker() {
 		return goodsPositionTracker;
 	}
 
-	public void setGoodsTracker(int[] goodsTracker) {
+	public void setGoodsPositionTracker(int[] goodsTracker) {
+		if (goodsTracker == null || goodsTracker.length != GoodType.values().length) {
+			throw new IllegalArgumentException("Goods tracker must have exactly " + GoodType.values().length + " entries.");
+		}
 		this.goodsPositionTracker = goodsTracker;
 	}
 
