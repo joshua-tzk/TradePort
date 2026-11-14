@@ -117,7 +117,7 @@ public interface BuildingRepository extends ConstantsLibrary{
 //		Methods
 //		************************************************************
 
-		boolean onBoard(Building[] buildingsOnBoard) {
+		public boolean onBoard(Building[] buildingsOnBoard) {
 			for(Building building : buildingsOnBoard)
 				if(this == building) return true;
 			return false;
