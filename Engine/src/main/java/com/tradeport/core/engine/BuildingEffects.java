@@ -1,6 +1,7 @@
 package com.tradeport.core.engine;
 
 import com.tradeport.core.model.BuildingRepository.Building;
+import com.tradeport.core.model.ConstantsLibrary.GoodType;
 import com.tradeport.core.model.Player;
 
 /**
@@ -94,7 +95,7 @@ public final class BuildingEffects {
 
 	// Effect triggered when a player visits Bait_Shop
 	public static void baitShopActionEvent(Controller controller, Player currentPlayer) {
-		// TODO: implement Bait_Shop's visit effect
+		controller.increaseGood(currentPlayer, GoodType.FISH, currentPlayer.getAnchorPerk());
 	}
 
 	// Effect triggered when a player visits Bank
@@ -104,12 +105,12 @@ public final class BuildingEffects {
 
 	// Effect triggered when a player visits Blacksmith
 	public static void blacksmithActionEvent(Controller controller, Player currentPlayer) {
-		// TODO: implement Blacksmith's visit effect
+		controller.swapGoodTypeForEveryOther(currentPlayer, GoodType.MEAT);
 	}
 
 	// Effect triggered when a player visits Butcher
 	public static void butcherActionEvent(Controller controller, Player currentPlayer) {
-		// TODO: implement Butcher's visit effect
+		controller.swapGoodTypeForEveryOther(currentPlayer, GoodType.MEAT);
 	}
 
 	// Effect triggered when a player visits Canal_Lock
@@ -119,7 +120,7 @@ public final class BuildingEffects {
 
 	// Effect triggered when a player visits Carpenters_Guild
 	public static void carpentersGuildActionEvent(Controller controller, Player currentPlayer) {
-		// TODO: implement Carpenters_Guild's visit effect
+		controller.swapTwoGoods(currentPlayer, GoodType.FISH, 3, GoodType.WOOD, 5);
 	}
 
 	// Effect triggered when a player visits Cartographers
@@ -154,7 +155,7 @@ public final class BuildingEffects {
 
 	// Effect triggered when a player visits Golem_Crafters
 	public static void golemCraftersActionEvent(Controller controller, Player currentPlayer) {
-		// TODO: implement Golem_Crafters's visit effect
+		controller.swapTwoGoods(currentPlayer, GoodType.FISH, 3, GoodType.STONE, 5);
 	}
 
 	// Effect triggered when a player visits House_of_Weights_and_Standards
@@ -179,12 +180,12 @@ public final class BuildingEffects {
 
 	// Effect triggered when a player visits Lumber_Yard
 	public static void lumberYardActionEvent(Controller controller, Player currentPlayer) {
-		// TODO: implement Lumber_Yard's visit effect
+		controller.increaseGood(currentPlayer, GoodType.WOOD, currentPlayer.getAnchorPerk());
 	}
 
 	// Effect triggered when a player visits Masoners_Hall
 	public static void masonersHallActionEvent(Controller controller, Player currentPlayer) {
-		// TODO: implement Masoners_Hall's visit effect
+		controller.swapGoodTypeForEveryOther(currentPlayer, GoodType.STONE);
 	}
 
 	// Effect triggered when a player visits Privateer_Ship
@@ -194,17 +195,23 @@ public final class BuildingEffects {
 
 	// Effect triggered when a player visits Pub
 	public static void pubActionEvent(Controller controller, Player currentPlayer) {
-		// TODO: implement Pub's visit effect
+		// Do not do anything if there's not enough of either good type
+		int goodsQuantity[] = currentPlayer.getGoodsQuantity();
+		if(goodsQuantity[GoodType.WOOD.ordinal()] < 1 || goodsQuantity[GoodType.STONE.ordinal()] < 1) return;
+		controller.decreaseGood(currentPlayer, GoodType.STONE, 1);
+		controller.decreaseGood(currentPlayer, GoodType.WOOD, 1);
+		controller.increaseGood(currentPlayer, GoodType.FISH, 2);
+		controller.increaseGood(currentPlayer, GoodType.MEAT, 2);
 	}
 
 	// Effect triggered when a player visits Quarry
 	public static void quarryActionEvent(Controller controller, Player currentPlayer) {
-		// TODO: implement Quarry's visit effect
+		controller.increaseGood(currentPlayer, GoodType.STONE, currentPlayer.getAnchorPerk());
 	}
 
 	// Effect triggered when a player visits Ranch
 	public static void ranchActionEvent(Controller controller, Player currentPlayer) {
-		// TODO: implement Ranch's visit effect
+		controller.increaseGood(currentPlayer, GoodType.MEAT, currentPlayer.getAnchorPerk());
 	}
 
 	// Effect triggered when a player visits Salvage_Yard
@@ -234,7 +241,7 @@ public final class BuildingEffects {
 
 	// Effect triggered when a player visits Sushi_Shop
 	public static void sushiShopActionEvent(Controller controller, Player currentPlayer) {
-		// TODO: implement Sushi_Shop's visit effect
+		controller.swapGoodTypeForEveryOther(currentPlayer, GoodType.FISH);
 	}
 
 	// Effect triggered when a player visits Tax_Office
@@ -254,7 +261,7 @@ public final class BuildingEffects {
 
 	// Effect triggered when a player visits Woodworkers_Hut
 	public static void woodworkersHutActionEvent(Controller controller, Player currentPlayer) {
-		// TODO: implement Woodworkers_Hut's visit effect
+		controller.swapGoodTypeForEveryOther(currentPlayer, GoodType.WOOD);
 	}
 
 	// Effect triggered when a player visits Alchemist

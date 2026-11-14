@@ -267,5 +267,44 @@ public class Controller {
 	public void triggerBuildingAction(Player currentPlayer, Building building) {
 		BuildingEffects.triggerBuildingAction(this, currentPlayer, building);
 	}
+	
+	
+	// Methods to increase or decrease goods
+	void increaseGood(Player currentPlayer, GoodType goodType, int quantity) {
+		objBoard.increaseGood(currentPlayer, goodType, quantity);
+	}
 
+	void decreaseGood(Player currentPlayer, GoodType goodType, int quantity) {
+		objBoard.decreaseGood(currentPlayer, goodType, quantity);
+	}
+
+	/**
+	 * Composite method: Swapping involves decreasing a type of good and increasing another
+	 */
+	void swapTwoGoods(Player currentPlayer, GoodType goodType1, int quantity1, GoodType goodType2, int quantity2) {
+		objBoard.swapGoods(currentPlayer, goodType1, quantity1, goodType2, quantity2);
+	}
+
+	/**
+	 * Composite action: trades 1 of goodType for 1 of every other good type.
+	 * Does nothing if the player owns none of goodType, or if any of the
+	 * receiving types is already at the maximum stack size.
+	 */
+	void swapGoodTypeForEveryOther(Player currentPlayer, GoodType goodType) {
+		Player player = getBoard().findPlayerById(currentPlayer.getPlayerId());
+		if (player.getGoodsQuantity(goodType) < 1) {
+			return;
+		}
+		for (GoodType other : GoodType.values()) {
+			if (other != goodType && player.getGoodsQuantity(other) >= Player.MAX_GOODS_PER_TYPE) {
+				return; // a receiving stack is full; the swap cannot complete
+			}
+		}
+		decreaseGood(player, goodType, 1);
+		for (GoodType other : GoodType.values()) {
+			if (other != goodType) {
+				increaseGood(player, other, 1);
+			}
+		}
+	}
 }

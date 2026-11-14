@@ -213,16 +213,13 @@ public class Board implements BuildingRepository{
 		}
 	}
 
-//	public Building[] checkBuyableBuildings(int maximumValue) {
-//		Building[] buyableBuildings = new Building[players.length + 3];
-//		int i = 0;
-//		for(Building building : buildingsOnBoard)
-//			if(building.getCost() <= maximumValue) {
-//				buyableBuildings[i] = building;
-//				i++;
-//			}
-//		return buyableBuildings;
-//	}
+	public void increaseGood(Player player, GoodType goodType, int quantity) {
+		player.setGoodsQuantity(goodType, player.getGoodsQuantity(goodType) + quantity);
+	}
+
+	public void decreaseGood(Player player, GoodType goodType, int quantity) {
+		player.setGoodsQuantity(goodType, player.getGoodsQuantity(goodType) - quantity);
+	}
 
 	public Player findPlayerById(int playerId) {
 		return Player.findPlayerById(players, playerId);
